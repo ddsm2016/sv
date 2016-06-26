@@ -1,0 +1,26 @@
+{
+  "name": "ddsm2016/sv",
+  "type": "library",
+  "description": "短信验证码发送验证类",
+  "keywords": ["东大", "短信验证"],
+  "homepage": "https://github.com/ddsm2016/sv/wiki",
+  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/ddsm2016/sv/issues"
+  },
+  "authors": [
+    {
+      "name": "Peng Weifeng",
+      "email": "pwf0112@163.com",
+      "homepage": "http://pengweifeng.cn"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sv\\": "src/"
+    }
+  }
+}
