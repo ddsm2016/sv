@@ -1,8 +1,10 @@
 <?php
 namespace Sv;
 
+use Carbon\Carbon;
 use Ddsm\Szrk\Sms;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class SmsVerify implements SvInterface
 {
@@ -31,6 +33,8 @@ class SmsVerify implements SvInterface
 
     private $code;
 
+    private $recode;
+
     /**
      * 发送短信验证码
      *
@@ -46,24 +50,24 @@ class SmsVerify implements SvInterface
             throw new \Exception('请先设置短信发送对象实例');
         }
 
-        $recode = $this->model->find($this->id);
-        if (!$recode) {
-            $recode = $this->model;
+        if (!$this->recode) {
+            $this->recode = $this->model;
 
-            $recode->id     = $this->id;
-            $recode->dayget = 0;
+            $this->recode->id     = $this->id;
+            $this->recode->dayget = 0;
         } else {
-            if ($recode->dayget >= $this->config->get_max) {
+            if ($this->recode->dayget >= $this->config->get('get_max')) {
                 $this->error = '当日获取次数超过限制次数';
+
                 return false;
             }
         }
 
-        $recode->code = $this->code;
-        $recode->dayget += 1;
-        $recode->verifyed = 0;
+        $this->recode->code = $this->code;
+        $this->recode->dayget += 1;
+        $this->recode->verifyed = 0;
 
-        $recode->save();
+        $this->recode->save();
 
         $this->sms->sentOne($phone, $this->content);
 
@@ -103,31 +107,33 @@ class SmsVerify implements SvInterface
      */
     function verify($inputCode)
     {
-        $recode = $this->model->find($this->id);
-
-        if (!$recode) {
+        if (!$this->recode) {
             $this->error = '请先获取短信验证码';
+
             return false;
         }
 
         // 验证码有效期过滤
-        if ($recode->created_time->getTimestamp() + $this->config->expire_time < LARAVEL_START) {
+        if ($this->recode->created_at->getTimestamp() + $this->config->get('expire_time') < LARAVEL_START) {
             $this->error = '短信验证码已过期';
+
             return false;
         }
 
         // 已验证次数过滤
-        if ($recode->verifyed >= $this->config->verify_max) {
+        if ($this->recode->verifyed >= $this->config->get('verify_max')) {
             $this->error = '已验证次数超过限制';
+
             return false;
         }
 
-        if ($recode->code === $inputCode) {
-            $recode->delete();
+        if ($this->recode->code === $inputCode) {
+            $this->recode->delete();
+
             return true;
         } else {
-            $recode->verifyed += 1;
-            $recode->save();
+            $this->recode->verifyed += 1;
+            $this->recode->save();
 
             $this->error = '验证码输入错误';
 
@@ -159,7 +165,7 @@ class SmsVerify implements SvInterface
 
     public function __construct($id)
     {
-        $this->id = $id;
+        $this->id = $id . '@' . Carbon::today()->toDateString();
     }
 
     /**
@@ -172,6 +178,8 @@ class SmsVerify implements SvInterface
     function config($config)
     {
         $this->config = collect($config);
+
+        return $this;
     }
 
     /**
@@ -184,6 +192,12 @@ class SmsVerify implements SvInterface
     function model($model)
     {
         $this->model = $model;
+
+        $currDay = [Carbon::today(), Carbon::tomorrow()];
+
+        $this->recode = $this->model->whereBetween('created_at', $currDay)->find($this->id);
+
+        return $this;
     }
 
     /**
@@ -196,6 +210,8 @@ class SmsVerify implements SvInterface
     function sms($sms)
     {
         $this->sms = $sms;
+
+        return $this;
     }
 
 }
