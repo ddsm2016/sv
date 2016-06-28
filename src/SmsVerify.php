@@ -4,7 +4,6 @@ namespace Sv;
 use Carbon\Carbon;
 use Ddsm\Szrk\Sms;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 class SmsVerify implements SvInterface
 {
@@ -114,7 +113,7 @@ class SmsVerify implements SvInterface
         }
 
         // 验证码有效期过滤
-        if ($this->recode->created_at->getTimestamp() + $this->config->get('expire_time') < LARAVEL_START) {
+        if ($this->recode->updated_at->getTimestamp() + $this->config->get('expire_time') < LARAVEL_START) {
             $this->error = '短信验证码已过期';
 
             return false;
@@ -128,7 +127,7 @@ class SmsVerify implements SvInterface
         }
 
         if ($this->recode->code === $inputCode) {
-            $this->recode->delete();
+            // $this->recode->delete();
 
             return true;
         } else {
