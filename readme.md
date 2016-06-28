@@ -54,9 +54,9 @@ $sv->model($model);  // $model为短信验证码Eloquent模型，返回当前对
 
 ## 方法清单
 
-- 发送短信验证码 send($phone)
-- 短信验证码验证 verify($inputCode)
-- 获取最后产生错误信息 error()
+- 发送短信验证码
+- 短信验证码验证
+- 获取最后产生错误信息
 
 ### 发送短信验证码
 
@@ -69,9 +69,9 @@ $sv->model($model);  // $model为短信验证码Eloquent模型，返回当前对
 $sv->sms($sms)->content($template)->send($phone);
 ```
 
-> - 如果验证码发送失败，可通过`$sv->error()`获取错误信息
-> - `sms`方法用于设定短信发送类实例
-> - `content`方法用于订制验证码短信模板，%s表示验证码占位符
+- 如果验证码发送失败，可通过`$sv->error()`获取错误信息
+- `sms`方法用于设定短信发送类实例
+- `content`方法用于订制验证码短信模板，%s表示验证码占位符
 
 ### 短信验证码验证
 
